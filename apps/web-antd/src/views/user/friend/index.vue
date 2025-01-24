@@ -2,11 +2,15 @@
 import { Page } from '@vben/common-ui';
 
 import { Card } from 'ant-design-vue';
+
+import FriendTable from './table.vue';
 </script>
 
 <template>
-  <Page>
-    <Card> Friend Page </Card>
+  <Page title="Friend">
+    <Card>
+      <FriendTable />
+    </Card>
   </Page>
 </template>
 
