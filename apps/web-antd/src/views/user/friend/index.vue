@@ -8,7 +8,7 @@ import FriendTable from './table.vue';
 
 <template>
   <Page title="Friend">
-    <Card>
+    <Card class="h-full">
       <FriendTable />
     </Card>
   </Page>

@@ -1,83 +1,89 @@
 <script lang="ts" setup>
-import type { VxeGridListeners, VxeGridProps } from '#/adapter/vxe-table';
+import type { Recordable } from '@vben/types';
 
-import { Button, message } from 'ant-design-vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
+import { Button } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { getFriendApi } from '#/api/modules/user/friend';
 
-const data: any[] = [];
+// 数据实例
+// const MOCK_TREE_TABLE_DATA = [
+//   {
+//     date: '2020-08-01',
+//     id: 10_000,
+//     name: 'Test1',
+//     parentId: null,
+//     size: 1024,
+//     type: 'mp3',
+//   },
+// ]
 
-interface RowType {
-  address: string;
-  age: number;
-  id: number;
-  name: string;
-  nickname: string;
-  role: string;
+/**
+ * 获取示例表格数据
+ */
+async function getFriends(params: Recordable<any>) {
+  return new Promise<{ items: any; total: number }>((resolve) => {
+    const { page, pageSize } = params;
+
+    getFriendApi().then((items) => {
+      items.slice((page - 1) * pageSize, page * pageSize);
+      resolve({
+        total: items.length,
+        items,
+      });
+    });
+  });
 }
 
-const gridOptions: VxeGridProps<RowType> = {
+const gridOptions: VxeGridProps = {
+  align: 'left',
+  checkboxConfig: {
+    highlight: true,
+    labelField: 'name',
+  },
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
-    { field: 'name', title: 'Name' },
-    { field: 'age', sortable: true, title: 'Age' },
-    { field: 'nickname', title: 'Nickname' },
-    { field: 'role', title: 'Role' },
-    { field: 'address', showOverflow: true, title: 'Address' },
+    { title: 'Index', type: 'seq', width: 60 },
+    { align: 'left', field: 'nickname', title: 'Nickname', width: 180 },
+    { field: 'birthDate', title: 'Birth Date', width: 140 },
+    { field: 'acquaintanceDate', title: 'Acquaintance Date' },
   ],
-  data,
-  pagerConfig: {
-    enabled: false,
+  exportConfig: {},
+  keepSource: true,
+  proxyConfig: {
+    ajax: {
+      query: async ({ page }) => {
+        return await getFriends({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+        });
+      },
+    },
   },
-  sortConfig: {
-    multiple: true,
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    // import: true,
+    refresh: true,
+    zoom: true,
   },
 };
 
-const gridEvents: VxeGridListeners<RowType> = {
-  cellClick: ({ row }) => {
-    message.info(`cell-click: ${row.name}`);
-  },
-};
-
-const [Grid, gridApi] = useVbenVxeGrid({ gridEvents, gridOptions });
-
-const showBorder = gridApi.useStore((state) => state.gridOptions?.border);
-const showStripe = gridApi.useStore((state) => state.gridOptions?.stripe);
-
-function changeBorder() {
-  gridApi.setGridOptions({
-    border: !showBorder.value,
-  });
-}
-
-function changeStripe() {
-  gridApi.setGridOptions({
-    stripe: !showStripe.value,
-  });
-}
-
-function changeLoading() {
-  gridApi.setLoading(true);
-  setTimeout(() => {
-    gridApi.setLoading(false);
-  }, 2000);
-}
+const [Grid, gridApi] = useVbenVxeGrid({
+  gridOptions,
+});
 </script>
 
 <template>
-  <!-- 此处的`vp-raw` 是为了适配文档的展示效果，实际使用时不需要 -->
   <div class="vp-raw w-full">
     <Grid>
       <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="changeBorder">
-          {{ showBorder ? '隐藏' : '显示' }}边框
+        <Button class="mr-2" type="primary" @click="() => gridApi.query()">
+          刷新当前页面
         </Button>
-        <Button class="mr-2" type="primary" @click="changeLoading">
-          显示loading
-        </Button>
-        <Button class="mr-2" type="primary" @click="changeStripe">
-          {{ showStripe ? '隐藏' : '显示' }}斑马纹
+        <Button type="primary" @click="() => gridApi.reload()">
+          刷新并返回第一页
         </Button>
       </template>
     </Grid>
