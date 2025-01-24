@@ -87,6 +87,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<RowType> = {
   align: 'left',
+  height: 'auto',
   checkboxConfig: {
     highlight: true,
     labelField: 'name',
@@ -123,11 +124,14 @@ const gridOptions: VxeGridProps<RowType> = {
   },
 };
 
-const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid] = useVbenVxeGrid({
+  tableTitle: 'Friend',
+  tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
+  formOptions,
+  gridOptions,
+});
 </script>
 
 <template>
-  <div class="vp-raw w-full">
-    <Grid />
-  </div>
+  <Grid />
 </template>
