@@ -1,43 +1,91 @@
 <script lang="ts" setup>
-import type { Recordable } from '@vben/types';
-
+import type { VbenFormProps } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
-import { Button } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getFriendApi } from '#/api/modules/user/friend';
 
-// 数据实例
-// const MOCK_TREE_TABLE_DATA = [
-//   {
-//     date: '2020-08-01',
-//     id: 10_000,
-//     name: 'Test1',
-//     parentId: null,
-//     size: 1024,
-//     type: 'mp3',
-//   },
-// ]
-
-/**
- * 获取示例表格数据
- */
-async function getFriends(params: Recordable<any>) {
-  return new Promise<{ items: any; total: number }>((resolve) => {
-    const { page, pageSize } = params;
-
-    getFriendApi().then((items) => {
-      items.slice((page - 1) * pageSize, page * pageSize);
-      resolve({
-        total: items.length,
-        items,
-      });
-    });
-  });
+interface RowType {
+  category: string;
+  color: string;
+  id: string;
+  price: string;
+  productName: string;
+  releaseDate: string;
 }
 
-const gridOptions: VxeGridProps = {
+const formOptions: VbenFormProps = {
+  // 默认展开
+  collapsed: false,
+  wrapperClass: 'grid-cols-9 gap-2',
+  commonConfig: {
+    hideLabel: true,
+  },
+  schema: [
+    {
+      component: 'Input',
+      componentProps: {
+        placeholder: 'Please enter category',
+      },
+      defaultValue: '1',
+      fieldName: 'category',
+      label: 'Category',
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        placeholder: 'Please enter productName',
+      },
+      fieldName: 'productName',
+      label: 'ProductName',
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        placeholder: 'Please enter price',
+      },
+      fieldName: 'price',
+      label: 'Price',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: [
+          {
+            label: 'Color1',
+            value: '1',
+          },
+          {
+            label: 'Color2',
+            value: '2',
+          },
+        ],
+        placeholder: '请选择',
+      },
+      fieldName: 'color',
+      label: 'Color',
+    },
+    {
+      component: 'DatePicker',
+      fieldName: 'datePicker',
+      label: 'Date',
+    },
+  ],
+  // 控制表单是否显示折叠按钮
+  showCollapseButton: true,
+  submitButtonOptions: {
+    content: '查询',
+  },
+  // 是否在字段值改变时提交表单
+  submitOnChange: false,
+  // 按下回车时是否提交表单
+  submitOnEnter: false,
+};
+
+const gridOptions: VxeGridProps<RowType> = {
   align: 'left',
   checkboxConfig: {
     highlight: true,
@@ -49,43 +97,37 @@ const gridOptions: VxeGridProps = {
     { field: 'birthDate', title: 'Birth Date', width: 140 },
     { field: 'acquaintanceDate', title: 'Acquaintance Date' },
   ],
-  exportConfig: {},
   keepSource: true,
+  pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }) => {
-        return await getFriends({
+      query: async ({ page }, formValues) => {
+        message.success(`Query params: ${JSON.stringify(formValues)}`);
+        const items = await getFriendApi({
           page: page.currentPage,
           pageSize: page.pageSize,
+          ...formValues,
         });
+
+        return {
+          items: items.slice(0, 20),
+          total: items.length,
+        };
       },
     },
   },
   toolbarConfig: {
-    custom: true,
-    export: true,
-    // import: true,
-    refresh: true,
-    zoom: true,
+    // 是否显示搜索表单控制按钮
+    // @ts-ignore 正式环境时有完整的类型声明
+    search: true,
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({
-  gridOptions,
-});
+const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
   <div class="vp-raw w-full">
-    <Grid>
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="() => gridApi.query()">
-          刷新当前页面
-        </Button>
-        <Button type="primary" @click="() => gridApi.reload()">
-          刷新并返回第一页
-        </Button>
-      </template>
-    </Grid>
+    <Grid />
   </div>
 </template>
