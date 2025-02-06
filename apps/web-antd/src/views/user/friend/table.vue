@@ -2,24 +2,15 @@
 import type { VbenFormProps } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
-import { message } from 'ant-design-vue';
+import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { getFriendApi } from '#/api/modules/user/friend';
-
-interface RowType {
-  category: string;
-  color: string;
-  id: string;
-  price: string;
-  productName: string;
-  releaseDate: string;
-}
+import { deleteFriendApi, getFriendApi } from '#/api/modules/user/friend';
 
 const formOptions: VbenFormProps = {
-  // 默认展开
-  collapsed: false,
-  wrapperClass: 'grid-cols-9 gap-2',
+  showCollapseButton: false, // 控制表单是否显示折叠按钮
+  collapsed: false, // 默认展开
+  wrapperClass: 'grid-cols-4 gap-2',
   commonConfig: {
     hideLabel: true,
   },
@@ -27,92 +18,89 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       componentProps: {
-        placeholder: 'Please enter category',
+        placeholder: 'Like Search Nickname',
       },
-      defaultValue: '1',
-      fieldName: 'category',
-      label: 'Category',
+      defaultValue: '',
+      fieldName: 'nickname',
+      label: 'Nickname',
     },
     {
       component: 'Input',
       componentProps: {
-        placeholder: 'Please enter productName',
+        placeholder: 'Like Search Firstname',
       },
-      fieldName: 'productName',
-      label: 'ProductName',
+      defaultValue: '',
+      fieldName: 'firstname',
+      label: 'Firstname',
     },
     {
       component: 'Input',
       componentProps: {
-        placeholder: 'Please enter price',
+        placeholder: 'Like Search Lastname',
       },
-      fieldName: 'price',
-      label: 'Price',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: [
-          {
-            label: 'Color1',
-            value: '1',
-          },
-          {
-            label: 'Color2',
-            value: '2',
-          },
-        ],
-        placeholder: '请选择',
-      },
-      fieldName: 'color',
-      label: 'Color',
-    },
-    {
-      component: 'DatePicker',
-      fieldName: 'datePicker',
-      label: 'Date',
+      defaultValue: '',
+      fieldName: 'lastname',
+      label: 'Lastname',
     },
   ],
-  // 控制表单是否显示折叠按钮
-  showCollapseButton: true,
   submitButtonOptions: {
-    content: '查询',
+    content: 'Search',
   },
   // 是否在字段值改变时提交表单
   submitOnChange: false,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
+  submitOnEnter: true,
 };
 
-const gridOptions: VxeGridProps<RowType> = {
+const gridOptions: VxeGridProps<any> = {
   align: 'left',
   height: 'auto',
   checkboxConfig: {
     highlight: true,
     labelField: 'name',
   },
+  editConfig: {
+    trigger: 'dblclick',
+    mode: 'cell',
+  },
   columns: [
     { title: 'Index', type: 'seq', width: 60 },
-    { align: 'left', field: 'nickname', title: 'Nickname', width: 180 },
+    {
+      align: 'left',
+      editRender: { name: 'input' },
+      field: 'nickname',
+      title: 'Nickname',
+      width: 180,
+    },
+    {
+      align: 'left',
+      title: 'Fullname',
+      width: 240,
+      slots: { default: 'fullname' },
+      showOverflow: true,
+    },
     { field: 'birthDate', title: 'Birth Date', width: 140 },
-    { field: 'acquaintanceDate', title: 'Acquaintance Date' },
+    { field: 'acquaintanceDate', title: 'Acquaintance Date', width: 180 },
+    {
+      align: 'left',
+      title: 'Action',
+      slots: { default: 'action' },
+    },
   ],
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues) => {
-        message.success(`Query params: ${JSON.stringify(formValues)}`);
-        const items = await getFriendApi({
+        const { list, pagination } = await getFriendApi({
           page: page.currentPage,
-          pageSize: page.pageSize,
+          size: page.pageSize,
           ...formValues,
         });
 
         return {
-          items: items.slice(0, 20),
-          total: items.length,
+          items: list,
+          total: pagination.total,
         };
       },
     },
@@ -124,14 +112,42 @@ const gridOptions: VxeGridProps<RowType> = {
   },
 };
 
-const [Grid] = useVbenVxeGrid({
+const [Grid, gridApi] = useVbenVxeGrid({
   tableTitle: 'Friend',
   tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
   formOptions,
   gridOptions,
 });
+
+function onEdit(row: any) {
+  gridApi.grid?.setEditRow(row);
+}
+
+async function onDelete(row: any) {
+  const friendId = row.id;
+  if (!friendId) {
+    message.error('This is an error message');
+    return;
+  }
+
+  await deleteFriendApi(friendId);
+  message.success(`Delete ${row.nickname} Successfully!`);
+  gridApi.query();
+}
 </script>
 
 <template>
-  <Grid />
+  <Grid>
+    <template #fullname="{ row }">
+      {{ `${row.firstname} ${row.lastname}` }}
+    </template>
+    <template #action="{ row }">
+      <div class="flex gap-2">
+        <Button type="primary" size="small" @click="onEdit(row)">Edit</Button>
+        <Button type="primary" size="small" danger @click="onDelete(row)">
+          Delete
+        </Button>
+      </div>
+    </template>
+  </Grid>
 </template>
