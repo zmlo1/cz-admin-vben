@@ -53,7 +53,9 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<any> = {
   align: 'left',
   height: 'auto',
-  layouts: ['Form', 'Table', 'Pager'],
+  sortConfig: {
+    remote: true,
+  },
   checkboxConfig: {
     highlight: true,
     labelField: 'name',
@@ -69,6 +71,7 @@ const gridOptions: VxeGridProps<any> = {
       editRender: { name: 'input' },
       field: 'nickname',
       title: 'Nickname',
+      sortable: true,
       width: 180,
     },
     {
@@ -87,7 +90,14 @@ const gridOptions: VxeGridProps<any> = {
     },
   ],
   keepSource: true,
-  pagerConfig: {},
+  rowConfig: {
+    isCurrent: true,
+  },
+  pagerConfig: {
+    align: 'right',
+    pagerCount: 5,
+    layouts: ['PrevPage', 'Number', 'NextPage', 'Total'],
+  },
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues) => {
@@ -113,8 +123,8 @@ const gridOptions: VxeGridProps<any> = {
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
-  // tableTitle: 'Friend',
-  // tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
+  tableTitle: 'Friend',
+  tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
   formOptions,
   gridOptions,
 });
