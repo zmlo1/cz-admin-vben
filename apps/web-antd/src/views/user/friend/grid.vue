@@ -10,7 +10,8 @@ import { deleteFriendApi, getFriendApi } from '#/api/modules/user/friend';
 const formOptions: VbenFormProps = {
   showCollapseButton: false, // 控制表单是否显示折叠按钮
   collapsed: false, // 默认展开
-  wrapperClass: 'grid-cols-4 gap-2',
+  wrapperClass:
+    'grid gap-[0_8px] grid-cols-1  md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
   commonConfig: {
     hideLabel: true,
   },
@@ -22,7 +23,6 @@ const formOptions: VbenFormProps = {
       },
       defaultValue: '',
       fieldName: 'nickname',
-      label: 'Nickname',
     },
     {
       component: 'Input',
@@ -31,7 +31,6 @@ const formOptions: VbenFormProps = {
       },
       defaultValue: '',
       fieldName: 'firstname',
-      label: 'Firstname',
     },
     {
       component: 'Input',
@@ -40,7 +39,6 @@ const formOptions: VbenFormProps = {
       },
       defaultValue: '',
       fieldName: 'lastname',
-      label: 'Lastname',
     },
   ],
   submitButtonOptions: {
@@ -55,6 +53,7 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<any> = {
   align: 'left',
   height: 'auto',
+  layouts: ['Form', 'Table', 'Pager'],
   checkboxConfig: {
     highlight: true,
     labelField: 'name',
@@ -109,12 +108,13 @@ const gridOptions: VxeGridProps<any> = {
     // 是否显示搜索表单控制按钮
     // @ts-ignore 正式环境时有完整的类型声明
     search: true,
+    custom: true,
   },
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
-  tableTitle: 'Friend',
-  tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
+  // tableTitle: 'Friend',
+  // tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
   formOptions,
   gridOptions,
 });
@@ -143,8 +143,8 @@ async function onDelete(row: any) {
     </template>
     <template #action="{ row }">
       <div class="flex gap-2">
-        <Button type="primary" size="small" @click="onEdit(row)">Edit</Button>
-        <Button type="primary" size="small" danger @click="onDelete(row)">
+        <Button type="link" size="small" @click="onEdit(row)">Edit</Button>
+        <Button type="link" size="small" danger @click="onDelete(row)">
           Delete
         </Button>
       </div>
