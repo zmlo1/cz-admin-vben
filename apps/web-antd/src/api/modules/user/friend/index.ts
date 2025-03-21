@@ -27,3 +27,7 @@ export async function updateFriendApi(id: number, friend: any) {
 export async function deleteFriendApi(id: number) {
   return requestClient.delete(`/friend/${id}`);
 }
+
+export async function createFriendApi(friend: any) {
+  return requestClient.post('/friend', friend);
+}

@@ -1,139 +1,72 @@
 <script lang="ts" setup>
-import type { VbenFormProps } from '#/adapter/form';
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import { ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
 
 import { Button, message } from 'ant-design-vue';
 
+import { useVbenForm } from '#/adapter/form';
+import {
+  MaterialSymbolsAddRounded,
+  MaterialSymbolsSearchRounded,
+} from '#/adapter/icon';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { deleteFriendApi, getFriendApi } from '#/api/modules/user/friend';
+import {
+  createFriendApi,
+  deleteFriendApi,
+  updateFriendApi,
+} from '#/api/modules/user/friend';
 
-const formOptions: VbenFormProps = {
-  showCollapseButton: false, // 控制表单是否显示折叠按钮
-  collapsed: false, // 默认展开
-  wrapperClass:
-    'grid gap-[0_8px] grid-cols-1  md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5',
-  commonConfig: {
-    hideLabel: true,
-  },
-  schema: [
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: 'Like Search Nickname',
-      },
-      defaultValue: '',
-      fieldName: 'nickname',
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: 'Like Search Firstname',
-      },
-      defaultValue: '',
-      fieldName: 'firstname',
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: 'Like Search Lastname',
-      },
-      defaultValue: '',
-      fieldName: 'lastname',
-    },
-  ],
-  submitButtonOptions: {
-    content: 'Search',
-  },
-  // 是否在字段值改变时提交表单
-  submitOnChange: false,
-  // 按下回车时是否提交表单
-  submitOnEnter: true,
-};
+import { gridOptions } from './grid-options';
+import { searchFormOptions } from './search-form-options';
+import { upsertFormOptions } from './upsert-form-options';
 
-const gridOptions: VxeGridProps<any> = {
-  align: 'left',
-  height: 'auto',
-  sortConfig: {
-    remote: true,
-  },
-  checkboxConfig: {
-    highlight: true,
-    labelField: 'name',
-  },
-  editConfig: {
-    trigger: 'dblclick',
-    mode: 'cell',
-  },
-  columns: [
-    { title: 'Index', type: 'seq', width: 60 },
-    {
-      align: 'left',
-      editRender: { name: 'input' },
-      field: 'nickname',
-      title: 'Nickname',
-      sortable: true,
-      width: 180,
-    },
-    {
-      align: 'left',
-      title: 'Fullname',
-      width: 240,
-      slots: { default: 'fullname' },
-      showOverflow: true,
-    },
-    { field: 'birthDate', title: 'Birth Date', width: 140 },
-    { field: 'acquaintanceDate', title: 'Acquaintance Date', width: 180 },
-    {
-      align: 'left',
-      title: 'Action',
-      slots: { default: 'action' },
-    },
-  ],
-  keepSource: true,
-  rowConfig: {
-    isCurrent: true,
-  },
-  pagerConfig: {
-    align: 'right',
-    pagerCount: 5,
-    layouts: ['PrevPage', 'Number', 'NextPage', 'Total'],
-  },
-  proxyConfig: {
-    ajax: {
-      query: async ({ page }, formValues) => {
-        const { list, pagination } = await getFriendApi({
-          page: page.currentPage,
-          size: page.pageSize,
-          ...formValues,
-        });
-
-        return {
-          items: list,
-          total: pagination.total,
-        };
-      },
-    },
-  },
-  toolbarConfig: {
-    // 是否显示搜索表单控制按钮
-    // @ts-ignore 正式环境时有完整的类型声明
-    search: true,
-    custom: true,
-  },
-};
+const upsertModelTitle = ref('Add Friend');
+const editRowId = ref<null | number>(null);
 
 const [Grid, gridApi] = useVbenVxeGrid({
   tableTitle: 'Friend',
   tableTitleHelp: `The information on this page is the friend's information, such as birthday, acquaintance time, etc.`,
-  formOptions,
+  formOptions: searchFormOptions,
   gridOptions,
 });
 
-function onEdit(row: any) {
-  gridApi.grid?.setEditRow(row);
+const [UpsertForm, upsertFormApi] = useVbenForm(upsertFormOptions);
+
+const [Model, modelApi] = useVbenModal({
+  title: upsertModelTitle.value,
+  draggable: true,
+  onConfirm: async () => {
+    const formData = await upsertFormApi.getValues();
+
+    try {
+      await (upsertModelTitle.value === 'Add Friend'
+        ? createFriendApi(formData)
+        : updateFriendApi(editRowId.value!, formData));
+      message.success('Success');
+
+      gridApi.query();
+      modelApi.close();
+    } catch {
+      message.error('Failed');
+    }
+  },
+});
+
+function onAdd() {
+  upsertModelTitle.value = 'Add Friend';
+  upsertFormApi.resetForm();
+  modelApi.open();
 }
 
-async function onDelete(row: any) {
+function onRowEdit(row: any) {
+  editRowId.value = row.id;
+  upsertModelTitle.value = 'Edit Friend';
+  upsertFormApi.setValues(row);
+  modelApi.open();
+}
+
+async function onRowDelete(row: any) {
   const friendId = row.id;
   if (!friendId) {
     message.error('This is an error message');
@@ -147,14 +80,41 @@ async function onDelete(row: any) {
 </script>
 
 <template>
+  <Model>
+    <UpsertForm />
+  </Model>
   <Grid>
+    <template #toolbar-tools>
+      <div class="flex gap-2">
+        <Button type="primary" @click="onAdd()">
+          <MaterialSymbolsAddRounded class="!text-[16px]" />
+        </Button>
+        <Button type="primary">
+          <MaterialSymbolsSearchRounded class="!text-[16px]" />
+        </Button>
+      </div>
+    </template>
+
     <template #fullname="{ row }">
       {{ `${row.firstname} ${row.lastname}` }}
     </template>
+
+    <template #wechatId="{ row }">
+      {{ row.wechatId || 'N/A' }}
+    </template>
+
+    <template #birthDate="{ row }">
+      {{ row.birthDate || '-' }}
+    </template>
+
+    <template #acquaintanceDate="{ row }">
+      {{ row.acquaintanceDate || '-' }}
+    </template>
+
     <template #action="{ row }">
       <div class="flex gap-2">
-        <Button type="link" size="small" @click="onEdit(row)">Edit</Button>
-        <Button type="link" size="small" danger @click="onDelete(row)">
+        <Button type="link" size="small" @click="onRowEdit(row)">Edit</Button>
+        <Button type="link" size="small" danger @click="onRowDelete(row)">
           Delete
         </Button>
       </div>
