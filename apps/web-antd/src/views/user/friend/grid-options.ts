@@ -57,6 +57,8 @@ export const gridOptions: VxeGridProps<any> = {
     {
       align: 'left',
       title: 'Action',
+      fixed: 'right',
+      minWidth: 140,
       slots: { default: 'action' },
     },
   ],
