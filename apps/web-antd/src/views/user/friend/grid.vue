@@ -117,8 +117,18 @@ async function onRowDelete(row: any) {
 
     <template #action="{ row }">
       <div class="flex gap-2">
-        <Button size="small" @click="onRowEdit(row)">Edit</Button>
-        <Button size="small" danger @click="onRowDelete(row)"> Delete </Button>
+        <Button size="small" type="primary" ghost @click="onRowEdit(row)">
+          Edit
+        </Button>
+        <Button
+          size="small"
+          type="primary"
+          ghost
+          danger
+          @click="onRowDelete(row)"
+        >
+          Delete
+        </Button>
       </div>
     </template>
   </Grid>
