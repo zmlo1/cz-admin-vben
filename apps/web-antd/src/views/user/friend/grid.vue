@@ -37,6 +37,10 @@ const [Model, modelApi] = useVbenModal({
   title: upsertModelTitle.value,
   draggable: true,
   onConfirm: async () => {
+    const { valid } = await upsertFormApi.validate();
+
+    if (!valid) return;
+
     const formData = await upsertFormApi.getValues();
 
     try {
