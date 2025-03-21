@@ -3,11 +3,13 @@ import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { Button, message } from 'ant-design-vue';
+import { Button, message, Modal } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
 import {
   MaterialSymbolsAddRounded,
+  MaterialSymbolsDeleteRounded,
+  MaterialSymbolsEditSquareOutline,
   MaterialSymbolsSearchRounded,
 } from '#/adapter/icon';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
@@ -77,9 +79,22 @@ async function onRowDelete(row: any) {
     return;
   }
 
-  await deleteFriendApi(friendId);
-  message.success(`Delete ${row.nickname} Successfully!`);
-  gridApi.query();
+  Modal.confirm({
+    title: 'Do you want to delete these items?',
+    content:
+      'When clicked the OK button, this dialog will be closed after 1 second',
+    onOk: async () => {
+      try {
+        await deleteFriendApi(friendId);
+        message.success(`Delete ${row.nickname} Successfully!`);
+        gridApi.query();
+      } catch {
+        message.error('Failed');
+      }
+    },
+
+    onCancel() {},
+  });
 }
 </script>
 
@@ -118,7 +133,7 @@ async function onRowDelete(row: any) {
     <template #action="{ row }">
       <div class="flex gap-2">
         <Button size="small" type="primary" ghost @click="onRowEdit(row)">
-          Edit
+          <MaterialSymbolsEditSquareOutline class="!text-[16px]" />
         </Button>
         <Button
           size="small"
@@ -127,7 +142,7 @@ async function onRowDelete(row: any) {
           danger
           @click="onRowDelete(row)"
         >
-          Delete
+          <MaterialSymbolsDeleteRounded class="!text-[16px]" />
         </Button>
       </div>
     </template>
