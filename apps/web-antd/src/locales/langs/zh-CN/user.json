@@ -2,5 +2,8 @@
   "title": "用户",
   "friend": {
     "title": "朋友"
+  },
+  "my": {
+    "title": "个人"
   }
 }

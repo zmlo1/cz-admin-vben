@@ -2,6 +2,9 @@
   "button": {
     "reset": "重置",
     "search": "搜索",
-    "add": "新增"
+    "add": "新增",
+    "submit": "提交",
+    "save": "保存",
+    "cancel": "取消"
   }
 }

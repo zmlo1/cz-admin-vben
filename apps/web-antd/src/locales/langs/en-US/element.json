@@ -2,6 +2,9 @@
   "button": {
     "reset": "Reset",
     "search": "Search",
-    "add": "Add"
+    "add": "Add",
+    "submit": "Submit",
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }

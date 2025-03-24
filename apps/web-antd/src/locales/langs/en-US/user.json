@@ -2,5 +2,8 @@
   "title": "User",
   "friend": {
     "title": "Friend"
+  },
+  "my": {
+    "title": "My"
   }
 }
