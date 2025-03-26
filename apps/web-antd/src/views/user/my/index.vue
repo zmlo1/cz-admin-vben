@@ -3,11 +3,11 @@ import { onMounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 
-import { Card, Input, message, Upload } from 'ant-design-vue';
+import { Card, Input, message } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { MaterialSymbolsAddRounded } from '#/adapter/icon';
 import { getMyInfoApi, updateMyInfoApi } from '#/api/modules/user/my';
+import Avatar from '#/components/avatar';
 import { $t } from '#/locales';
 
 const userId = ref<number>();
@@ -121,7 +121,10 @@ const [Form, formApi] = useVbenForm({
     content: $t('element.button.save'),
   },
   resetButtonOptions: {
-    content: $t('element.button.cancel'),
+    content: $t('element.button.reset'),
+  },
+  async handleReset() {
+    formApi.setValues(initData.value);
   },
   async handleSubmit(values) {
     try {
@@ -146,10 +149,8 @@ onMounted(() => {
   <Page :title="$t('user.my.title')" class="h-full" :auto-content-height="true">
     <Card class="h-full">
       <Form>
-        <template #avatar>
-          <Upload list-type="picture-card">
-            <MaterialSymbolsAddRounded class="text-2xl" />
-          </Upload>
+        <template #avatar="slotProps">
+          <Avatar v-bind="slotProps" />
         </template>
         <template #remark="slotProps">
           <Input.TextArea v-bind="slotProps" />
